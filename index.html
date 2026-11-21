@@ -19,7 +19,7 @@
     <label class="btn">Import .xlsx<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden></label>
     <button class="btn" id="exportXlsx">Export .xlsx</button>
     <button class="btn" id="exportCsv">Export .csv</button>
-    <button class="btn danger" id="resetData">Reset</button>
+    <button class="btn" id="resetData">Reset filters</button>
   </div>
 </header>
 
@@ -28,8 +28,8 @@
   <section class="kpis" id="kpis"></section>
   <section class="tables">
     <div class="card"><h3>Service</h3><table id="tService"></table></div>
-    <div class="card"><h3>Engineer <button class="btn mini" data-add="engineers">+ Add</button></h3><table id="tEngineer"></table></div>
-    <div class="card"><h3>Customer <button class="btn mini" data-add="customers">+ Add</button></h3><table id="tCustomer"></table></div>
+    <div class="card"><h3>Engineer <button class="btn mini" data-add="engineers">Manage</button></h3><table id="tEngineer"></table></div>
+    <div class="card"><h3>Customer <button class="btn mini" data-add="customers">Manage</button></h3><table id="tCustomer"></table></div>
     <div class="card"><h3>Site Status</h3><table id="tStatus"></table></div>
     <div class="card"><h3>Service Status</h3><table id="tSvcStatus"></table></div>
   </section>
@@ -49,8 +49,8 @@
     <select id="fStatus"><option value="">All site status</option></select>
     <select id="fEngineer"><option value="">All engineers</option></select>
     <button class="btn primary" id="addRow">+ Add project</button>
-    <button class="btn" data-add="engineers">+ Add engineer</button>
-    <button class="btn" data-add="customers">+ Add customer</button>
+    <button class="btn" data-add="engineers">Manage engineers</button>
+    <button class="btn" data-add="customers">Manage customers</button>
     <span id="count"></span>
   </div>
   <div class="tablewrap">

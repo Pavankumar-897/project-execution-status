@@ -36,3 +36,12 @@ canvas{max-height:300px}
 .x{border:0;background:none;color:var(--red);cursor:pointer;font-size:16px}
 .badge-ON-GOING{color:var(--cyan)}.badge-COMPLETED{color:var(--green)}
 .btn.mini{padding:2px 8px;font-size:11px;margin-left:8px}
+
+dialog#mgr{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);padding:18px;width:min(440px,92vw)}
+dialog#mgr::backdrop{background:rgba(0,0,0,.45)}
+#mgr h3{margin:0 0 12px}.mgr-add{display:flex;gap:8px;margin-bottom:10px}
+.mgr-add input{flex:1;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+#mgrList{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+#mgrList li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+#mgrList small{color:var(--mute)}.mgr-foot{text-align:right;margin-top:12px}
+.btn.mini.danger{color:var(--red)}

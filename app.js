@@ -39,15 +39,53 @@ function syncPeople(){
   savePeople();
 }
 syncPeople();
-// ADD NEW ENGINEER / CUSTOMER from the website
-function addPerson(kind){
-  const label = kind==="engineers" ? "engineer" : "customer";
-  const name = (prompt(`Enter new ${label} name:`)||"").trim().toUpperCase();
-  if(!name) return;
-  if(people[kind].includes(name)){ alert(`${name} already exists.`); return; }
-  people[kind].push(name); savePeople(); renderGrid(); renderDashboard();
+// MANAGE ENGINEERS / CUSTOMERS : add, rename (edit), delete
+const FIELD_OF = { engineers:"engineer", customers:"customer" };
+function openManager(kind){
+  const label = kind==="engineers" ? "Engineers" : "Customers";
+  const field = FIELD_OF[kind];
+  document.getElementById("mgr")?.remove();
+  const dlg = document.createElement("dialog"); dlg.id="mgr";
+  dlg.innerHTML = `<h3>Manage ${label}</h3><div class="mgr-add"><input id="mgrNew" placeholder="New ${label.slice(0,-1).toLowerCase()} name"><button class="btn primary" id="mgrAdd">Add</button></div><ul id="mgrList"></ul><div class="mgr-foot"><button class="btn" id="mgrClose">Close</button></div>`;
+  document.body.appendChild(dlg); dlg.showModal();
+  const used = n => rows.filter(r=>(r[field]||"").trim()===n).length;
+  const draw = () => {
+    dlg.querySelector("#mgrList").innerHTML = people[kind].map((n,i)=>
+      `<li><span>${esc(n)} <small>(${used(n)} projects)</small></span><span><button class="btn mini" data-ren="${i}">Edit</button><button class="btn mini danger" data-delp="${i}">Delete</button></span></li>`).join("") || "<li>No names yet</li>";
+  };
+  const refresh = () => { savePeople(); save(); draw(); renderGrid(); renderDashboard(); };
+  const add = () => {
+    const inp = dlg.querySelector("#mgrNew"); const name = inp.value.trim().toUpperCase();
+    if(!name) return;
+    if(people[kind].includes(name)){ alert(name+" already exists."); return; }
+    people[kind].push(name); inp.value=""; refresh();
+  };
+  dlg.querySelector("#mgrAdd").onclick = add;
+  dlg.querySelector("#mgrNew").addEventListener("keydown",e=>{ if(e.key==="Enter") add(); });
+  dlg.querySelector("#mgrClose").onclick = () => dlg.close();
+  dlg.addEventListener("close",()=>dlg.remove());
+  dlg.addEventListener("click",e=>{
+    const t=e.target;
+    if(t.dataset.ren!==undefined){                         // EDIT / RENAME
+      const old = people[kind][t.dataset.ren];
+      const nn = (prompt("Edit name:", old)||"").trim().toUpperCase();
+      if(!nn || nn===old) return;
+      if(people[kind].includes(nn)){ alert(nn+" already exists."); return; }
+      people[kind][t.dataset.ren] = nn;
+      rows.forEach(r=>{ if((r[field]||"").trim()===old) r[field]=nn; });  // update projects too
+      refresh();
+    }
+    if(t.dataset.delp!==undefined){                        // DELETE
+      const old = people[kind][t.dataset.delp], n = used(old);
+      if(!confirm(n ? `${old} is used in ${n} project(s). Delete anyway? Those projects will become unassigned.` : `Delete ${old}?`)) return;
+      people[kind].splice(t.dataset.delp,1);
+      rows.forEach(r=>{ if((r[field]||"").trim()===old) r[field]=""; });
+      refresh();
+    }
+  });
+  draw();
 }
-document.addEventListener("click",e=>{ const k=e.target.dataset?.add; if(k) addPerson(k); });
+document.addEventListener("click",e=>{ const k=e.target.dataset?.add; if(k) openManager(k); });
 function load(){ try{ const s=localStorage.getItem(KEY); if(s) return JSON.parse(s);}catch(e){} return structuredClone(SEED); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(rows)); }catch(e){} }
 const $ = s => document.querySelector(s);
@@ -163,6 +201,6 @@ $("#importFile").onchange=async e=>{
   rows=aoa.map(r=>Object.fromEntries(FIELDS.map((k,i)=>[k,String(r[i]??"").trim()])));
   save(); syncPeople(); renderGrid(); renderDashboard(); e.target.value="";
 };
-$("#resetData").onclick=()=>{ if(confirm("Reset to the original 8 sample projects?")){ rows=structuredClone(SEED); people=structuredClone(DEFAULT_PEOPLE); save(); savePeople(); renderGrid(); renderDashboard(); } };
+$("#resetData").onclick=()=>{ $("#search").value=""; $("#fStatus").value=""; $("#fEngineer").value=""; renderGrid(); };  // only clears filters, data is kept
 
 renderGrid(); renderDashboard();
