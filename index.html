@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Execution Status</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>PROJECT EXECUTION STATUS</h1>
+  <nav>
+    <button class="tab active" data-tab="dashboard">DASHBOARD</button>
+    <button class="tab" data-tab="projects">PROJECTS</button>
+  </nav>
+  <div class="tools">
+    <label class="btn">Import .xlsx<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden></label>
+    <button class="btn" id="exportXlsx">Export .xlsx</button>
+    <button class="btn" id="exportCsv">Export .csv</button>
+    <button class="btn danger" id="resetData">Reset</button>
+  </div>
+</header>
+
+<!-- DASHBOARD SHEET -->
+<main id="dashboard" class="panel active">
+  <section class="kpis" id="kpis"></section>
+  <section class="tables">
+    <div class="card"><h3>Service</h3><table id="tService"></table></div>
+    <div class="card"><h3>Engineer <button class="btn mini" data-add="engineers">+ Add</button></h3><table id="tEngineer"></table></div>
+    <div class="card"><h3>Customer <button class="btn mini" data-add="customers">+ Add</button></h3><table id="tCustomer"></table></div>
+    <div class="card"><h3>Site Status</h3><table id="tStatus"></table></div>
+    <div class="card"><h3>Service Status</h3><table id="tSvcStatus"></table></div>
+  </section>
+  <section class="charts">
+    <div class="card"><h3>PROJECTS BY SERVICE</h3><canvas id="cService"></canvas></div>
+    <div class="card"><h3>PROJECTS BY ENGINEER</h3><canvas id="cEngineer"></canvas></div>
+    <div class="card"><h3>PROJECTS BY COSTUMER</h3><canvas id="cCustomer"></canvas></div>
+    <div class="card"><h3>SITE STATUS</h3><canvas id="cStatus"></canvas></div>
+    <div class="card"><h3>SERVICE STATUS</h3><canvas id="cSvcStatus"></canvas></div>
+  </section>
+</main>
+
+<!-- PROJECTS SHEET -->
+<main id="projects" class="panel">
+  <div class="bar">
+    <input id="search" placeholder="Search any column…">
+    <select id="fStatus"><option value="">All site status</option></select>
+    <select id="fEngineer"><option value="">All engineers</option></select>
+    <button class="btn primary" id="addRow">+ Add project</button>
+    <button class="btn" data-add="engineers">+ Add engineer</button>
+    <button class="btn" data-add="customers">+ Add customer</button>
+    <span id="count"></span>
+  </div>
+  <div class="tablewrap">
+    <table id="grid">
+      <thead><tr>
+        <th>ENQUIRY NUMBER</th><th>SERVICE REQUEST CODE</th><th>ENQUIRY</th><th>CONFIRMATION</th>
+        <th>COSTUMER NAME</th><th>SITE LOCATION , STATE</th><th>SERVICE REQUIRED</th>
+        <th>ENGINEER ASSIGNED</th><th>SITE STATUS</th><th></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
