@@ -45,3 +45,7 @@ dialog#mgr::backdrop{background:rgba(0,0,0,.45)}
 #mgrList li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 #mgrList small{color:var(--mute)}.mgr-foot{text-align:right;margin-top:12px}
 .btn.mini.danger{color:var(--red)}
+
+.cv{position:relative;height:280px}
+.card th{white-space:nowrap;font-size:12px}
+#tSvcStatus td:first-child{white-space:nowrap}

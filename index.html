@@ -19,7 +19,6 @@
     <label class="btn">Import .xlsx<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden></label>
     <button class="btn" id="exportXlsx">Export .xlsx</button>
     <button class="btn" id="exportCsv">Export .csv</button>
-    <button class="btn" id="resetData">Reset filters</button>
   </div>
 </header>
 
@@ -34,11 +33,11 @@
     <div class="card"><h3>Service Status</h3><table id="tSvcStatus"></table></div>
   </section>
   <section class="charts">
-    <div class="card"><h3>PROJECTS BY SERVICE</h3><canvas id="cService"></canvas></div>
-    <div class="card"><h3>PROJECTS BY ENGINEER</h3><canvas id="cEngineer"></canvas></div>
-    <div class="card"><h3>PROJECTS BY COSTUMER</h3><canvas id="cCustomer"></canvas></div>
-    <div class="card"><h3>SITE STATUS</h3><canvas id="cStatus"></canvas></div>
-    <div class="card"><h3>SERVICE STATUS</h3><canvas id="cSvcStatus"></canvas></div>
+    <div class="card"><h3>PROJECTS BY SERVICE</h3><div class="cv"><canvas id="cService"></canvas></div></div>
+    <div class="card"><h3>PROJECTS BY ENGINEER</h3><div class="cv"><canvas id="cEngineer"></canvas></div></div>
+    <div class="card"><h3>PROJECTS BY COSTUMER</h3><div class="cv"><canvas id="cCustomer"></canvas></div></div>
+    <div class="card"><h3>SITE STATUS</h3><div class="cv"><canvas id="cStatus"></canvas></div></div>
+    <div class="card"><h3>SERVICE STATUS</h3><div class="cv"><canvas id="cSvcStatus"></canvas></div></div>
   </section>
 </main>
 

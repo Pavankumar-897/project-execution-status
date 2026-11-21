@@ -97,6 +97,7 @@ const countBy = (f,v) => rows.filter(r=>(r[f]||"").trim()===v).length;
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===b));
   document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===b.dataset.tab));
+  try{ localStorage.setItem("pes.tab", b.dataset.tab); }catch(e){}
   if(b.dataset.tab==="dashboard") renderDashboard();
 });
 
@@ -147,7 +148,7 @@ function table(id, head, data){
 function chart(id,type,labels,datasets,opts={}){
   if(typeof Chart==="undefined"){ return; } // offline: tables still render
   charts[id]?.destroy();
-  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:true,...opts,
+  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,...opts,
     plugins:{legend:{display:type==="pie"||datasets.length>1},...(opts.plugins||{})}}});
 }
 function renderDashboard(){
@@ -161,6 +162,7 @@ function renderDashboard(){
     ["Site Completed",countBy("status","COMPLETED"),"#16a34a"]];
   $("#kpis").innerHTML=kp.map(([l,v,c])=>`<div class="kpi" style="border-left-color:${c}"><b>${v}</b><span>${l}</span></div>`).join("");
 
+  const two=l=>String(l).split(" ");
   const svc=LISTS.service.slice(0,3).map(s=>[s,countBy("service",s)]);
   const eng=people.engineers.map(e=>[e,countBy("engineer",e)]);
   const cus=people.customers.map(c=>[c,countBy("customer",c)]);
@@ -170,15 +172,15 @@ function renderDashboard(){
   table("#tEngineer",["Engineer","Projects"],eng);
   table("#tCustomer",["Customer","Projects"],cus);
   table("#tStatus",["SITE STATUS","COUNT"],sta);
-  table("#tSvcStatus",["SERVICE","COMPLETED","ON-GOING"],ss);
+  table("#tSvcStatus",["SERVICE","COMPLETED","ON&#8209;GOING"],ss);
 
-  chart("#cService","bar",svc.map(x=>x[0]),[{label:"COUNT",data:svc.map(x=>x[1]),backgroundColor:PALETTE[0]}],{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
+  chart("#cService","bar",svc.map(x=>two(x[0])),[{label:"COUNT",data:svc.map(x=>x[1]),backgroundColor:PALETTE[0]}],{plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:0,minRotation:0,autoSkip:false,font:{size:11}}},y:{beginAtZero:true,ticks:{precision:0}}}});
   chart("#cEngineer","bar",eng.map(x=>x[0]),[{label:"Projects",data:eng.map(x=>x[1]),backgroundColor:PALETTE[1]}],{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}});
   chart("#cCustomer","pie",cus.map(x=>x[0]),[{data:cus.map(x=>x[1]),backgroundColor:PALETTE}]);
   chart("#cStatus","pie",sta.map(x=>x[0]),[{data:sta.map(x=>x[1]),backgroundColor:["#0891b2","#16a34a"]}]);
-  chart("#cSvcStatus","bar",ss.map(x=>x[0]),[
+  chart("#cSvcStatus","bar",ss.map(x=>two(x[0])),[
     {label:"COMPLETED",data:ss.map(x=>x[1]),backgroundColor:"#16a34a"},
-    {label:"ON-GOING",data:ss.map(x=>x[2]),backgroundColor:"#0891b2"}],{scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
+    {label:"ON-GOING",data:ss.map(x=>x[2]),backgroundColor:"#0891b2"}],{plugins:{legend:{display:true,position:"top"}},scales:{x:{ticks:{maxRotation:0,minRotation:0,autoSkip:false,font:{size:11}}},y:{beginAtZero:true,ticks:{precision:0,stepSize:1},grace:"10%"}}});
 }
 
 /* ---------- Import / Export ---------- */
@@ -201,6 +203,8 @@ $("#importFile").onchange=async e=>{
   rows=aoa.map(r=>Object.fromEntries(FIELDS.map((k,i)=>[k,String(r[i]??"").trim()])));
   save(); syncPeople(); renderGrid(); renderDashboard(); e.target.value="";
 };
-$("#resetData").onclick=()=>{ $("#search").value=""; $("#fStatus").value=""; $("#fEngineer").value=""; renderGrid(); };  // only clears filters, data is kept
 
 renderGrid(); renderDashboard();
+
+// open the same tab you were on before (refresh keeps the page)
+try{ const t=localStorage.getItem("pes.tab"); if(t) document.querySelector(`.tab[data-tab="${t}"]`)?.click(); }catch(e){}
