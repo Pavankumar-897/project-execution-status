@@ -49,3 +49,7 @@ dialog#mgr::backdrop{background:rgba(0,0,0,.45)}
 .cv{position:relative;height:280px}
 .card th{white-space:nowrap;font-size:12px}
 #tSvcStatus td:first-child{white-space:nowrap}
+
+#grid td.svc{white-space:nowrap}
+#grid td.svc select{width:100%}
+#grid input.other-in{border-top:1px dashed var(--line);background:rgba(245,158,11,.10)}

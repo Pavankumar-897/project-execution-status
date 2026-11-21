@@ -106,6 +106,15 @@ function selectHTML(field, opts, val, i){
   const all = opts.includes(val)||!val ? opts : [val,...opts];
   return `<select data-i="${i}" data-f="${field}"><option value=""></option>${all.map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
 }
+// SERVICE REQUIRED: dropdown; choose OTHERS to type your own service name
+const MAIN_SERVICES = LISTS.service.filter(x=>x!=="OTHERS");
+function serviceCell(r,i){
+  const v=(r.service||"").trim();
+  const other = v && !MAIN_SERVICES.includes(v);          // "OTHERS" or a typed custom service
+  const sel = `<select data-i="${i}" data-f="serviceSel"><option value=""></option>${MAIN_SERVICES.map(o=>`<option ${o===v?"selected":""}>${o}</option>`).join("")}<option value="OTHERS" ${other?"selected":""}>OTHERS</option></select>`;
+  const box = other ? `<input class="other-in" data-i="${i}" data-f="serviceOther" placeholder="Type service…" value="${esc(v==="OTHERS"?"":v)}">` : "";
+  return `<td class="svc">${sel}${box}</td>`;
+}
 function renderGrid(){
   const q = $("#search").value.toLowerCase(), fs=$("#fStatus").value, fe=$("#fEngineer").value;
   const tb = $("#grid tbody"); let shown=0;
@@ -115,7 +124,7 @@ function renderGrid(){
     shown++;
     const t=(f)=>`<td><input data-i="${i}" data-f="${f}" value="${esc(r[f])}"></td>`;
     const s=(f,o)=>`<td>${selectHTML(f,o,r[f],i)}</td>`;
-    return `<tr>${t("enquiryNo")}${t("requestCode")}${s("enquiry",LISTS.enquiry)}${s("confirmation",LISTS.confirmation)}${s("customer",people.customers)}${s("state",LISTS.state)}${s("service",LISTS.service)}${s("engineer",people.engineers)}${s("status",LISTS.status)}<td class="del"><button class="x" data-del="${i}" title="Delete">✕</button></td></tr>`;
+    return `<tr>${t("enquiryNo")}${t("requestCode")}${s("enquiry",LISTS.enquiry)}${s("confirmation",LISTS.confirmation)}${s("customer",people.customers)}${s("state",LISTS.state)}${serviceCell(r,i)}${s("engineer",people.engineers)}${s("status",LISTS.status)}<td class="del"><button class="x" data-del="${i}" title="Delete">✕</button></td></tr>`;
   }).join("");
   $("#count").textContent = `${shown} of ${rows.length} projects`;
   fillFilters();
@@ -126,7 +135,12 @@ function fillFilters(){
 }
 $("#grid").addEventListener("change",e=>{
   const t=e.target; if(t.dataset.f===undefined) return;
-  rows[t.dataset.i][t.dataset.f]=t.value.trim(); save(); renderGrid();
+  const i=t.dataset.i, f=t.dataset.f, val=t.value.trim();
+  if(f==="serviceSel"){ rows[i].service = val; }                       // OTHERS -> text box appears
+  else if(f==="serviceOther"){ rows[i].service = val || "OTHERS"; }   // typed custom service
+  else rows[i][f]=val;
+  save(); renderGrid();
+  if(f==="serviceSel" && val==="OTHERS") document.querySelector(`.other-in[data-i="${i}"]`)?.focus();
 });
 $("#grid").addEventListener("click",e=>{
   const i=e.target.dataset.del; if(i===undefined) return;
