@@ -53,3 +53,7 @@ dialog#mgr::backdrop{background:rgba(0,0,0,.45)}
 #grid td.svc{white-space:nowrap}
 #grid td.svc select{width:100%}
 #grid input.other-in{border-top:1px dashed var(--line);background:rgba(245,158,11,.10)}
+
+.brand{display:flex;align-items:center;gap:12px}
+.logo{height:56px;width:auto;background:#fff;border-radius:8px;padding:2px}
+.co{font-size:11px;letter-spacing:.12em;color:#15803d;font-weight:700}
