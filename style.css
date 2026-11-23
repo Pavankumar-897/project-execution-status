@@ -54,6 +54,9 @@ dialog#mgr::backdrop{background:rgba(0,0,0,.45)}
 #grid td.svc select{width:100%}
 #grid input.other-in{border-top:1px dashed var(--line);background:rgba(245,158,11,.10)}
 
-.brand{display:flex;align-items:center;gap:12px}
-.logo{height:56px;width:auto;background:#fff;border-radius:8px;padding:2px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{height:40px;width:40px;object-fit:contain;background:#fff;border-radius:6px}
 .co{font-size:11px;letter-spacing:.12em;color:#15803d;font-weight:700}
+
+.cloud{align-self:center;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;border:1px solid var(--line)}
+.cloud.ok{color:#16a34a;border-color:#16a34a}.cloud.off{color:var(--mute)}

@@ -28,7 +28,7 @@ const DEFAULT_PEOPLE = {
 let rows = load();
 let people = loadPeople();
 function loadPeople(){ try{ const s=localStorage.getItem(PKEY); if(s) return JSON.parse(s);}catch(e){} return structuredClone(DEFAULT_PEOPLE); }
-function savePeople(){ try{ localStorage.setItem(PKEY, JSON.stringify(people)); }catch(e){} }
+function savePeople(){ try{ localStorage.setItem(PKEY, JSON.stringify(people)); }catch(e){} push(); }
 // make sure every engineer/customer used in the rows is in the lists
 function syncPeople(){
   rows.forEach(r=>{
@@ -87,7 +87,7 @@ function openManager(kind){
 }
 document.addEventListener("click",e=>{ const k=e.target.dataset?.add; if(k) openManager(k); });
 function load(){ try{ const s=localStorage.getItem(KEY); if(s) return JSON.parse(s);}catch(e){} return structuredClone(SEED); }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(rows)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(rows)); }catch(e){} push(); }
 const $ = s => document.querySelector(s);
 const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const uniq = f => [...new Set(rows.map(r=>(r[f]||"").trim()).filter(Boolean))];
@@ -218,6 +218,46 @@ $("#importFile").onchange=async e=>{
   save(); syncPeople(); renderGrid(); renderDashboard(); e.target.value="";
 };
 
+
+/* ================= SHARED LIVE DATA (Firebase Realtime Database) =================
+   Everyone who opens the website link sees the same data, updated live.
+   If firebase-config.js is not filled in, the app works in this browser only. */
+var dbRef = null, cloudReady = false, pending = null;
+const norm = (r,p) => JSON.stringify({rows:r.map(x=>FIELDS.map(f=>x[f]||"")), e:p.engineers, c:p.customers});
+function setStatus(txt, ok){ const el=document.getElementById("cloud"); if(el){ el.textContent=txt; el.className="cloud "+(ok?"ok":"off"); } }
+function push(){
+  if(!dbRef || !cloudReady) return;
+  dbRef.set({rows, people}).catch(()=>setStatus("● Save failed",false));
+}
+function applyIncoming(){
+  if(!pending) return;
+  const a=document.activeElement;
+  if(a && a.closest && a.closest("#grid, #mgr") && /INPUT|SELECT/.test(a.tagName)) return;  // don't disturb typing
+  rows=pending.rows; people=pending.people; pending=null;
+  try{ localStorage.setItem(KEY,JSON.stringify(rows)); localStorage.setItem(PKEY,JSON.stringify(people)); }catch(e){}
+  renderGrid(); renderDashboard();
+}
+document.addEventListener("focusout",()=>setTimeout(applyIncoming,150));
+function initCloud(){
+  const cfg = window.FIREBASE_CONFIG;
+  if(!window.firebase || !cfg || !cfg.databaseURL || cfg.databaseURL.includes("YOUR_")){ setStatus("● Local only",false); return; }
+  try{
+    firebase.initializeApp(cfg);
+    dbRef = firebase.database().ref("pes/state");
+    setStatus("● Connecting…",false);
+    dbRef.on("value", snap=>{
+      const v = snap.val();
+      if(!v){ cloudReady=true; push(); setStatus("● Live (shared)",true); return; }   // first ever run: upload current data
+      const nr = Object.values(v.rows||{}).map(r=>Object.fromEntries(FIELDS.map(f=>[f,r[f]??""])));
+      const np = {engineers:Object.values(v.people?.engineers||{}), customers:Object.values(v.people?.customers||{})};
+      cloudReady = true; setStatus("● Live (shared)",true);
+      if(norm(nr,np)===norm(rows,people)) return;      // nothing new
+      pending = {rows:nr, people:np}; applyIncoming();
+    }, ()=>setStatus("● No access – check Firebase rules",false));
+  }catch(e){ setStatus("● Local only",false); }
+}
+
+initCloud();
 renderGrid(); renderDashboard();
 
 // open the same tab you were on before (refresh keeps the page)
