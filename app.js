@@ -226,7 +226,7 @@ $("#importFile").onchange=async e=>{
    - People who click "Enable editing" and paste the team token can ADD / EDIT / DELETE;
      every change is saved to data.json and appears for everyone. */
 const GH = { owner:"Pavankumar-897", repo:"project-execution-status", branch:"main", file:"data.json" };
-var cloudReady=false, pending=null, ghSha=null, ghEtag=null, dirty=false, writing=false, pushTimer=null;
+var keepLocal=false, cloudReady=false, pending=null, ghSha=null, ghEtag=null, dirty=false, writing=false, pushTimer=null;
 const TKEY="pes.token";
 const getToken=()=>{ try{ return localStorage.getItem(TKEY)||""; }catch(e){ return ""; } };
 const API=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.file}`;
@@ -260,6 +260,7 @@ async function fetchRemote(force){
     if(res.status===404){ cloudReady=true; ghSha=null; liveStatus(); if(getToken()) push(); return; }  // first run: create data.json
     if(!res.ok) throw new Error(res.status);
     ghEtag=res.headers.get("ETag"); const j=await res.json(); ghSha=j.sha;
+    if(keepLocal){ keepLocal=false; cloudReady=true; push(); return; }   // upload THIS device's data as the shared data
     const v=JSON.parse(b64d(j.content));
     const nr=(v.rows||[]).map(r=>Object.fromEntries(FIELDS.map(f=>[f,r[f]??""])));
     const np={engineers:v.people?.engineers||[],customers:v.people?.customers||[]};
@@ -290,7 +291,10 @@ async function doWrite(retry){
 document.getElementById("tokenBtn").onclick=()=>{
   if(getToken()){ if(confirm("Turn editing OFF on this device?")){ try{localStorage.removeItem(TKEY);}catch(e){} updateMode(); liveStatus(); } return; }
   const t=(prompt("Paste the team GitHub token to enable editing:")||"").trim();
-  if(t){ try{ localStorage.setItem(TKEY,t); }catch(e){} updateMode(); fetchRemote(true); }
+  if(t){
+    try{ localStorage.setItem(TKEY,t); }catch(e){}
+    updateMode(); fetchRemote(true);
+  }
 };
 function initCloud(){
   updateMode(); fetchRemote(true);
