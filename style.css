@@ -60,3 +60,6 @@ dialog#mgr::backdrop{background:rgba(0,0,0,.45)}
 
 .cloud{align-self:center;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;border:1px solid var(--line)}
 .cloud.ok{color:#16a34a;border-color:#16a34a}.cloud.off{color:var(--mute)}
+
+.ro #addRow,.ro [data-add],.ro .x,.ro label.btn{display:none!important}
+#grid input:disabled,#grid select:disabled{opacity:1;color:inherit;cursor:default;-webkit-text-fill-color:currentColor}

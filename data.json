@@ -1,0 +1,109 @@
+{
+ "rows": [
+  {
+   "enquiryNo": "    PPS-2026-001  ",
+   "requestCode": "        NOT REQ",
+   "enquiry": "PRODUCT",
+   "confirmation": "YES",
+   "customer": "NTPC",
+   "state": "TELANGANA",
+   "service": "RETRO FITTING",
+   "engineer": "SARAN",
+   "status": "ON-GOING"
+  },
+  {
+   "enquiryNo": "    PPS-2026-002",
+   "requestCode": "",
+   "enquiry": "SERVICE",
+   "confirmation": "NO",
+   "customer": "HPCL",
+   "state": "ANDHRA PRADESH",
+   "service": "RELAY TESTING",
+   "engineer": "SIVA",
+   "status": "COMPLETED"
+  },
+  {
+   "enquiryNo": "    PPS-2026-003",
+   "requestCode": "       23JBHKL",
+   "enquiry": "SOLUTION",
+   "confirmation": "YES",
+   "customer": "APTRANSCO",
+   "state": "ANDHRA PRADESH",
+   "service": "COMMISSIONING",
+   "engineer": "ROHIT",
+   "status": "COMPLETED"
+  },
+  {
+   "enquiryNo": "    PPS-2026-004",
+   "requestCode": "       23JBHKM",
+   "enquiry": "SERVICE",
+   "confirmation": "YES",
+   "customer": "TNTRANSCO",
+   "state": "TAMILNADU",
+   "service": "RELAY TESTING",
+   "engineer": "SIVA",
+   "status": "ON-GOING"
+  },
+  {
+   "enquiryNo": "    PPS-2026-005",
+   "requestCode": "       23JBHKN",
+   "enquiry": "SOLUTION",
+   "confirmation": "YES",
+   "customer": "HPCL",
+   "state": "GUJARAT",
+   "service": "RETRO FITTING",
+   "engineer": "SARAN",
+   "status": "ON-GOING"
+  },
+  {
+   "enquiryNo": "    PPS-2026-006",
+   "requestCode": "       23JBHNM",
+   "enquiry": "SERVICE",
+   "confirmation": "YES",
+   "customer": "TNTRANSCO",
+   "state": "MAHARASHTRA",
+   "service": "RELAY TESTING",
+   "engineer": "ROHIT",
+   "status": "COMPLETED"
+  },
+  {
+   "enquiryNo": "    PPS-2026-007",
+   "requestCode": "",
+   "enquiry": "SERVICE",
+   "confirmation": "NO",
+   "customer": "KPTCL",
+   "state": "KERALA ",
+   "service": "RETRO FITTING",
+   "engineer": "MANIKANTA",
+   "status": "COMPLETED"
+  },
+  {
+   "enquiryNo": "    PPS-2026-008",
+   "requestCode": "       23JBHNP",
+   "enquiry": "SOLUTION",
+   "confirmation": "YES",
+   "customer": "MSETCL",
+   "state": "MAHARASHTRA",
+   "service": "COMMISSIONING",
+   "engineer": "PAVAN",
+   "status": "COMPLETED"
+  }
+ ],
+ "people": {
+  "engineers": [
+   "SARAN",
+   "SIVA",
+   "ROHIT",
+   "MANIKANTA",
+   "PAVAN"
+  ],
+  "customers": [
+   "NTPC",
+   "HPCL",
+   "APTRANSCO",
+   "TNTRANSCO",
+   "KPTCL",
+   "MSETCL"
+  ]
+ }
+}

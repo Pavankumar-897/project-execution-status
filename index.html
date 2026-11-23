@@ -17,7 +17,8 @@
     <button class="tab" data-tab="projects">PROJECTS</button>
   </nav>
   <div class="tools">
-    <span id="cloud" class="cloud off">● Local only</span>
+    <span id="cloud" class="cloud off">● Connecting…</span>
+    <button class="btn" id="tokenBtn">🔑 Enable editing</button>
     <label class="btn">Import .xlsx<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden></label>
     <button class="btn" id="exportXlsx">Export .xlsx</button>
     <button class="btn" id="exportCsv">Export .csv</button>
@@ -66,9 +67,6 @@
   </div>
 </main>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

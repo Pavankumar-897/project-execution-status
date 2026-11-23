@@ -127,6 +127,7 @@ function renderGrid(){
     return `<tr>${t("enquiryNo")}${t("requestCode")}${s("enquiry",LISTS.enquiry)}${s("confirmation",LISTS.confirmation)}${s("customer",people.customers)}${s("state",LISTS.state)}${serviceCell(r,i)}${s("engineer",people.engineers)}${s("status",LISTS.status)}<td class="del"><button class="x" data-del="${i}" title="Delete">✕</button></td></tr>`;
   }).join("");
   $("#count").textContent = `${shown} of ${rows.length} projects`;
+  if(document.body.classList.contains("ro")) tb.querySelectorAll("input,select").forEach(x=>x.disabled=true);
   fillFilters();
 }
 function fillFilters(){
@@ -219,44 +220,83 @@ $("#importFile").onchange=async e=>{
 };
 
 
-/* ================= SHARED LIVE DATA (Firebase Realtime Database) =================
-   Everyone who opens the website link sees the same data, updated live.
-   If firebase-config.js is not filled in, the app works in this browser only. */
-var dbRef = null, cloudReady = false, pending = null;
-const norm = (r,p) => JSON.stringify({rows:r.map(x=>FIELDS.map(f=>x[f]||"")), e:p.engineers, c:p.customers});
-function setStatus(txt, ok){ const el=document.getElementById("cloud"); if(el){ el.textContent=txt; el.className="cloud "+(ok?"ok":"off"); } }
-function push(){
-  if(!dbRef || !cloudReady) return;
-  dbRef.set({rows, people}).catch(()=>setStatus("● Save failed",false));
+/* ================= SHARED LIVE DATA (GitHub only) =================
+   The shared data is the file data.json inside your GitHub repository.
+   - Everybody who opens the website link SEES the live data (auto-refresh every 10 s).
+   - People who click "Enable editing" and paste the team token can ADD / EDIT / DELETE;
+     every change is saved to data.json and appears for everyone. */
+const GH = { owner:"Pavankumar-897", repo:"project-execution-status", branch:"main", file:"data.json" };
+var cloudReady=false, pending=null, ghSha=null, ghEtag=null, dirty=false, writing=false, pushTimer=null;
+const TKEY="pes.token";
+const getToken=()=>{ try{ return localStorage.getItem(TKEY)||""; }catch(e){ return ""; } };
+const API=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.file}`;
+const hdr=(x={})=>{ const h={Accept:"application/vnd.github+json",...x}; const t=getToken(); if(t) h.Authorization="Bearer "+t; return h; };
+const b64d=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,"")),c=>c.charCodeAt(0)));
+const b64e=s=>btoa(unescape(encodeURIComponent(s)));
+const norm=(r,p)=>JSON.stringify({rows:r.map(x=>FIELDS.map(f=>x[f]||"")),e:p.engineers,c:p.customers});
+function setStatus(txt,ok){ const el=document.getElementById("cloud"); if(el){ el.textContent=txt; el.className="cloud "+(ok?"ok":"off"); } }
+function liveStatus(){ setStatus(getToken()?"● Live (shared)":"● Live (view only)",true); }
+function updateMode(){
+  const ro=!getToken(); document.body.classList.toggle("ro",ro);
+  const b=document.getElementById("tokenBtn"); if(b) b.textContent = ro ? "🔑 Enable editing" : "Editing ON – sign out";
+  renderGrid();
 }
 function applyIncoming(){
   if(!pending) return;
   const a=document.activeElement;
-  if(a && a.closest && a.closest("#grid, #mgr") && /INPUT|SELECT/.test(a.tagName)) return;  // don't disturb typing
+  if(a && a.closest && a.closest("#grid, #mgr") && /INPUT|SELECT/.test(a.tagName)) return;   // don't disturb typing
   rows=pending.rows; people=pending.people; pending=null;
   try{ localStorage.setItem(KEY,JSON.stringify(rows)); localStorage.setItem(PKEY,JSON.stringify(people)); }catch(e){}
   renderGrid(); renderDashboard();
 }
 document.addEventListener("focusout",()=>setTimeout(applyIncoming,150));
-function initCloud(){
-  const cfg = window.FIREBASE_CONFIG;
-  if(!window.firebase || !cfg || !cfg.databaseURL || cfg.databaseURL.includes("YOUR_")){ setStatus("● Local only",false); return; }
-  try{
-    firebase.initializeApp(cfg);
-    dbRef = firebase.database().ref("pes/state");
-    setStatus("● Connecting…",false);
-    dbRef.on("value", snap=>{
-      const v = snap.val();
-      if(!v){ cloudReady=true; push(); setStatus("● Live (shared)",true); return; }   // first ever run: upload current data
-      const nr = Object.values(v.rows||{}).map(r=>Object.fromEntries(FIELDS.map(f=>[f,r[f]??""])));
-      const np = {engineers:Object.values(v.people?.engineers||{}), customers:Object.values(v.people?.customers||{})};
-      cloudReady = true; setStatus("● Live (shared)",true);
-      if(norm(nr,np)===norm(rows,people)) return;      // nothing new
-      pending = {rows:nr, people:np}; applyIncoming();
-    }, ()=>setStatus("● No access – check Firebase rules",false));
-  }catch(e){ setStatus("● Local only",false); }
-}
 
+async function fetchRemote(force){
+  if(dirty||writing) return;
+  try{
+    const h=hdr(); if(ghEtag && !force) h["If-None-Match"]=ghEtag;
+    const res=await fetch(API+"?ref="+GH.branch+(force?"&t="+Date.now():""),{headers:h,cache:"no-cache"});
+    if(res.status===304){ cloudReady=true; liveStatus(); return; }
+    if(res.status===404){ cloudReady=true; ghSha=null; liveStatus(); if(getToken()) push(); return; }  // first run: create data.json
+    if(!res.ok) throw new Error(res.status);
+    ghEtag=res.headers.get("ETag"); const j=await res.json(); ghSha=j.sha;
+    const v=JSON.parse(b64d(j.content));
+    const nr=(v.rows||[]).map(r=>Object.fromEntries(FIELDS.map(f=>[f,r[f]??""])));
+    const np={engineers:v.people?.engineers||[],customers:v.people?.customers||[]};
+    cloudReady=true; liveStatus();
+    if(norm(nr,np)!==norm(rows,people)){ pending={rows:nr,people:np}; applyIncoming(); }
+  }catch(e){ setStatus("● Offline – showing saved copy",false); }
+}
+function push(){
+  if(!cloudReady || !getToken()) return;
+  dirty=true; clearTimeout(pushTimer); pushTimer=setTimeout(()=>doWrite(0),1200); setStatus("● Saving…",false);
+}
+async function doWrite(retry){
+  pushTimer=null; writing=true;
+  try{
+    const body={message:"Update project data",content:b64e(JSON.stringify({rows,people},null,1)),branch:GH.branch};
+    if(ghSha) body.sha=ghSha;
+    const res=await fetch(API,{method:"PUT",headers:hdr({"Content-Type":"application/json"}),body:JSON.stringify(body)});
+    if((res.status===409||res.status===422) && retry<3){          // someone saved just before us: take the new version id and retry
+      const g=await fetch(API+"?ref="+GH.branch+"&t="+Date.now(),{headers:hdr(),cache:"no-store"});
+      ghSha = g.ok ? (await g.json()).sha : null;
+      writing=false; return doWrite(retry+1);
+    }
+    if(!res.ok) throw new Error(res.status);
+    const j=await res.json(); ghSha=j.content.sha; ghEtag=null; dirty=!!pushTimer; liveStatus();
+  }catch(e){ dirty=false; setStatus("● Save failed – check token",false); fetchRemote(true); }
+  finally{ writing=false; }
+}
+document.getElementById("tokenBtn").onclick=()=>{
+  if(getToken()){ if(confirm("Turn editing OFF on this device?")){ try{localStorage.removeItem(TKEY);}catch(e){} updateMode(); liveStatus(); } return; }
+  const t=(prompt("Paste the team GitHub token to enable editing:")||"").trim();
+  if(t){ try{ localStorage.setItem(TKEY,t); }catch(e){} updateMode(); fetchRemote(true); }
+};
+function initCloud(){
+  updateMode(); fetchRemote(true);
+  setInterval(()=>fetchRemote(false),10000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) fetchRemote(false); });
+}
 initCloud();
 renderGrid(); renderDashboard();
 
